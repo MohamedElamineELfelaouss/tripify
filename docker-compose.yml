@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: tripify-mongo
+    volumes:
+      - ./data/mongo:/data/db
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=tripify
+    networks:
+      - tripify-network
+
+  api-node:
+    build: ./services/api-node
+    container_name: tripify-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - MONGO_URL=mongodb://mongo:27017/tripify
+      - JWT_SECRET=tripify-secret-key-change-in-production
+      - PORT=3000
+    depends_on:
+      - mongo
+    volumes:
+      - ./services/api-node:/app
+      - /app/node_modules
+    networks:
+      - tripify-network
+
+networks:
+  tripify-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
