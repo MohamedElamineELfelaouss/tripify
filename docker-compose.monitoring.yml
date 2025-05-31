@@ -1,0 +1,108 @@
+version: '3.8'
+
+services:
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tripify-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - tripify-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.prometheus.rule=Host(`localhost`) && PathPrefix(`/prometheus`)"
+      - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tripify-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost/grafana
+      - GF_SERVER_SERVE_FROM_SUB_PATH=true
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - tripify-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`localhost`) && PathPrefix(`/grafana`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: tripify-jaeger
+    ports:
+      - "16686:16686"
+      - "14250:14250"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - tripify-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jaeger.rule=Host(`localhost`) && PathPrefix(`/jaeger`)"
+      - "traefik.http.services.jaeger.loadbalancer.server.port=16686"
+
+  # Service Discovery
+  consul:
+    image: consul:latest
+    container_name: tripify-consul
+    ports:
+      - "8500:8500"
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+    command: >
+      consul agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
+      -data-dir=/consul/data -config-dir=/consul/config
+    volumes:
+      - consul-data:/consul/data
+    networks:
+      - tripify-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.consul.rule=Host(`localhost`) && PathPrefix(`/consul`)"
+      - "traefik.http.services.consul.loadbalancer.server.port=8500"
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: tripify-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - tripify-network
+  # Node Exporter for system metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+    networks:
+      - tripify-network
+
+networks:
+  tripify-network:
+    external: true
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  consul-data:
+  redis-data:

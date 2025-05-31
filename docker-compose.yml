@@ -1,33 +1,120 @@
 version: '3.8'
 
-services:
+services:  # API Gateway (Traefik)
+  traefik:
+    image: traefik:v3.0
+    container_name: tripify-gateway
+    command:
+      - "--configFile=/traefik.yml"
+    ports:
+      - "80:80"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik.yml:/traefik.yml
+    depends_on:
+      - consul
+    networks:
+      - tripify-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=Host(`localhost`) && PathPrefix(`/traefik`)"
+
+  # Database
   mongo:
     image: mongo:7
     container_name: tripify-mongo
     volumes:
-      - ./data/mongo:/data/db
-    ports:
-      - "27017:27017"
+      - mongo-data:/data/db
     environment:
       - MONGO_INITDB_DATABASE=tripify
+    ports:
+      - "27017:27017"
     networks:
       - tripify-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/tripify --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: tripify-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - tripify-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  # Core API Service
   api-node:
     build: ./services/api-node
     container_name: tripify-api
-    ports:
-      - "3000:3000"
     environment:
       - NODE_ENV=development
       - MONGO_URL=mongodb://mongo:27017/tripify
+      - REDIS_URL=redis://redis:6379
       - JWT_SECRET=tripify-secret-key-change-in-production
       - PORT=3000
+      - GRPC_PORT=50051
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      consul:
+        condition: service_started
     volumes:
       - ./services/api-node:/app
       - /app/node_modules
+      - ./contracts:/contracts
+    networks:
+      - tripify-network  # External Data Service
+  data-service:
+    build: ./services/data-service
+    container_name: tripify-data
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - GRPC_PORT=50052
+      - REDIS_URL=redis://redis:6379
+      - AMADEUS_API_KEY=${AMADEUS_API_KEY:-demo}
+      - WEATHER_API_KEY=${WEATHER_API_KEY:-demo}
+      - UNSPLASH_API_KEY=${UNSPLASH_API_KEY:-demo}
+    depends_on:
+      - redis
+      - consul
+    volumes:
+      - ./services/data-service:/app
+      - /app/node_modules
+    networks:
+      - tripify-network  # React Frontend
+  web-react:
+    build: ./services/web-react
+    container_name: tripify-frontend
+    environment:
+      - VITE_API_URL=http://localhost/api
+      - VITE_DATA_URL=http://localhost/data
+    depends_on:
+      - api-node
+      - data-service
+      - consul
+    networks:
+      - tripify-network
+  # Service Discovery
+  consul:
+    image: consul:1.15
+    container_name: tripify-consul
+    ports:
+      - "8500:8500"
+    command: agent -server -ui -node=server-1 -bootstrap-expect=1 -client=0.0.0.0
     networks:
       - tripify-network
 
@@ -36,4 +123,5 @@ networks:
     driver: bridge
 
 volumes:
+  redis-data:
   mongo-data:

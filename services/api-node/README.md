@@ -678,6 +678,7 @@ The Tripify API is now fully functional for core trip management and ready for f
 
 - **[Project Status](./STATUS.md)** - Detailed development status and roadmap
 - **[Main Project README](../../README.md)** - Overall project documentation
+- **[Database Architecture](../../docs/DATABASE_ARCHITECTURE.md)** - MongoDB file structure & production patterns
 - **[Test Suite](./tests/)** - Automated test implementation
 
 ---

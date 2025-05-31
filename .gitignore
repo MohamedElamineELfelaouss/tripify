@@ -1,10 +1,11 @@
-# Dependencies
-node_modules/
+# Dependencies and Lock Files
+**/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 package-lock.json
 yarn.lock
+pnpm-lock.yaml
 
 # Environment variables
 .env
@@ -13,14 +14,21 @@ yarn.lock
 .env.test.local
 .env.production.local
 
-# Build outputs
-dist/
-build/
+# Build outputs and compiled files
+**/dist/
+**/build/
 *.tsbuildinfo
+.next/
+.nuxt/
+.output/
+.vercel/
+.vite/
 
 # Logs
 logs/
 *.log
+lerna-debug.log*
+.pnpm-debug.log*
 
 # Runtime data
 pids/
@@ -31,6 +39,7 @@ pids/
 # Coverage directory used by tools like istanbul
 coverage/
 *.lcov
+.nyc_output/
 
 # IDE and editor files
 .vscode/
@@ -38,6 +47,12 @@ coverage/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
 
 # OS generated files
 .DS_Store
@@ -47,13 +62,59 @@ coverage/
 .Trashes
 ehthumbs.db
 Thumbs.db
+desktop.ini
 
-# Docker data (keep structure but ignore data)
-data/mongo/
+# Docker data (MongoDB and other persistent data)
+data/
+# Keep data directory structure but ignore content
+!data/.gitkeep
+
+# Cache directories
+.cache/
+.parcel-cache/
+.sass-cache/
 
 # Temporary files
 tmp/
 temp/
+*.tmp
+*.temp
+
+# Source maps (large files)
+*.map
+
+# WASM files (large binary files)
+*.wasm
 
 # GitHub instructions (sensitive project info)
-.github
+.github/
+
+# Test artifacts
+test-results/
+playwright-report/
+test-results.xml
+coverage.xml
+
+# Database files and backups
+*.sqlite
+*.db
+*.mdb
+
+# Compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Archives
+*.zip
+*.tar.gz
+*.rar
+
+# Large media files (add specific extensions as needed)
+*.mp4
+*.avi
+*.mov
+*.wmv
+*.flv
+*.webm

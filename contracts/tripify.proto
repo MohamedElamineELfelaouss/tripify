@@ -1,0 +1,261 @@
+syntax = "proto3";
+
+package tripify.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+// API Gateway Service - Routes requests to appropriate services
+service ApiGateway {
+  rpc RouteRequest(GatewayRequest) returns (GatewayResponse);
+  rpc GetHealth(google.protobuf.Empty) returns (HealthResponse);
+}
+
+// Trip Service - Core trip management
+service TripService {
+  rpc CreateTrip(CreateTripRequest) returns (TripResponse);
+  rpc GetTrip(GetTripRequest) returns (TripResponse);
+  rpc UpdateTrip(UpdateTripRequest) returns (TripResponse);
+  rpc DeleteTrip(DeleteTripRequest) returns (DeleteResponse);
+  rpc SearchTrips(SearchTripsRequest) returns (SearchTripsResponse);
+  rpc AddCollaborator(AddCollaboratorRequest) returns (CollaboratorResponse);
+  rpc GetTripAnalytics(AnalyticsRequest) returns (AnalyticsResponse);
+}
+
+// User Service - Authentication and user management
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (UserResponse);
+  rpc GetUser(GetUserRequest) returns (UserResponse);
+  rpc UpdateUser(UpdateUserRequest) returns (UserResponse);
+  rpc AuthenticateUser(AuthRequest) returns (AuthResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (AuthResponse);
+  rpc ResetPassword(ResetPasswordRequest) returns (OperationResponse);
+}
+
+// Data Service - External API integrations
+service DataService {
+  rpc GetFlights(FlightSearchRequest) returns (FlightSearchResponse);
+  rpc GetHotels(HotelSearchRequest) returns (HotelSearchResponse);
+  rpc GetWeather(WeatherRequest) returns (WeatherResponse);
+  rpc GetDestinationImages(ImageRequest) returns (ImageResponse);
+  rpc GetExchangeRates(ExchangeRateRequest) returns (ExchangeRateResponse);
+  rpc GetDestinationInfo(DestinationInfoRequest) returns (DestinationInfoResponse);
+}
+
+// Recommendation Service - AI-powered suggestions
+service RecommendationService {
+  rpc GetPersonalizedDestinations(PersonalizationRequest) returns (RecommendationResponse);
+  rpc GetSimilarTrips(SimilarTripsRequest) returns (RecommendationResponse);
+  rpc GetTrendingDestinations(TrendingRequest) returns (RecommendationResponse);
+  rpc UpdateUserPreferences(PreferencesRequest) returns (OperationResponse);
+}
+
+// Notification Service - Real-time notifications
+service NotificationService {
+  rpc SendNotification(NotificationRequest) returns (OperationResponse);
+  rpc GetNotifications(GetNotificationsRequest) returns (NotificationsResponse);
+  rpc MarkAsRead(MarkReadRequest) returns (OperationResponse);
+  rpc SubscribeToUpdates(SubscriptionRequest) returns (stream NotificationEvent);
+}
+
+// Gateway Messages
+message GatewayRequest {
+  string service = 1;
+  string method = 2;
+  bytes payload = 3;
+  map<string, string> headers = 4;
+}
+
+message GatewayResponse {
+  int32 status_code = 1;
+  bytes payload = 2;
+  map<string, string> headers = 3;
+}
+
+message HealthResponse {
+  string status = 1;
+  string service = 2;
+  string version = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+// Messages
+message Trip {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string destination = 4;
+  string start_date = 5;
+  string end_date = 6;
+  Budget budget = 7;
+  bool is_public = 8;
+  repeated string collaborators = 9;
+  string created_at = 10;
+  string updated_at = 11;
+}
+
+message Budget {
+  double estimated = 1;
+  double actual = 2;
+  string currency = 3;
+}
+
+message CreateTripRequest {
+  Trip trip = 1;
+  string user_id = 2;
+}
+
+message TripResponse {
+  Trip trip = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetTripRequest {
+  string trip_id = 1;
+  string user_id = 2;
+}
+
+message UpdateTripRequest {
+  string trip_id = 1;
+  Trip trip = 2;
+  string user_id = 3;
+}
+
+message DeleteTripRequest {
+  string trip_id = 1;
+  string user_id = 2;
+}
+
+message DeleteResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+message SearchTripsRequest {
+  string destination = 1;
+  string start_date = 2;
+  string end_date = 3;
+  int32 page = 4;
+  int32 limit = 5;
+}
+
+message SearchTripsResponse {
+  repeated Trip trips = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 limit = 4;
+}
+
+// User Messages
+message User {
+  string id = 1;
+  string first_name = 2;
+  string last_name = 3;
+  string email = 4;
+  UserPreferences preferences = 5;
+  repeated string achievements = 6;
+  string created_at = 7;
+}
+
+message UserPreferences {
+  repeated string interests = 1;
+  string budget_range = 2;
+  repeated string preferred_destinations = 3;
+}
+
+message CreateUserRequest {
+  User user = 1;
+  string password = 2;
+}
+
+message UserResponse {
+  User user = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+message UpdateUserRequest {
+  string user_id = 1;
+  User user = 2;
+}
+
+message AuthRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message AuthResponse {
+  User user = 1;
+  string token = 2;
+  bool success = 3;
+  string message = 4;
+}
+
+// Data Service Messages
+message FlightSearchRequest {
+  string origin = 1;
+  string destination = 2;
+  string departure_date = 3;
+  string return_date = 4;
+  int32 passengers = 5;
+}
+
+message FlightSearchResponse {
+  repeated Flight flights = 1;
+}
+
+message Flight {
+  string id = 1;
+  string airline = 2;
+  string origin = 3;
+  string destination = 4;
+  string departure_time = 5;
+  string arrival_time = 6;
+  Price price = 7;
+  string duration = 8;
+}
+
+message Price {
+  double amount = 1;
+  string currency = 2;
+}
+
+message WeatherRequest {
+  string location = 1;
+  string date = 2;
+}
+
+message WeatherResponse {
+  string location = 1;
+  double temperature = 2;
+  string condition = 3;
+  int32 humidity = 4;
+  repeated WeatherForecast forecast = 5;
+}
+
+message WeatherForecast {
+  string date = 1;
+  double temperature = 2;
+  string condition = 3;
+}
+
+message ImageRequest {
+  string destination = 1;
+  int32 count = 2;
+}
+
+message ImageResponse {
+  repeated DestinationImage images = 1;
+}
+
+message DestinationImage {
+  string id = 1;
+  string url = 2;
+  string photographer = 3;
+  string description = 4;
+}

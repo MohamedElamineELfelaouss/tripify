@@ -1,0 +1,34 @@
+# Traefik Configuration v3.0
+# Dynamic service discovery via Consul Catalog
+api:
+  dashboard: true
+  insecure: true  # Development only
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  # Keep Docker provider for infrastructure services (Traefik, Consul, MongoDB, Redis)
+  docker:
+    endpoint: "unix:///var/run/docker.sock"
+    exposedByDefault: false
+    # Consul Catalog provider for dynamic service discovery
+  consulCatalog:
+    endpoint:
+      address: "consul:8500"
+    exposedByDefault: false
+    prefix: "traefik"
+    refreshInterval: "5s"
+
+# Monitoring
+metrics:
+  prometheus: {}
+
+# Logging
+log:
+  level: INFO
+
+accessLog: {}

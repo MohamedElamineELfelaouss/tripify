@@ -242,11 +242,12 @@ docker compose down
 4. Update documentation as needed
 5. Submit a pull request
 
-## 📝 API Documentation
+## 📝 Documentation
 
-For detailed API documentation with request/response examples, see:
+For detailed documentation, see:
 - **[API Service README](./services/api-node/README.md)** - Complete endpoint documentation
 - **[Development Status](./services/api-node/STATUS.md)** - Current development status and tasks
+- **[Database Architecture](./docs/DATABASE_ARCHITECTURE.md)** - MongoDB file structure & production patterns
 
 ---
 
