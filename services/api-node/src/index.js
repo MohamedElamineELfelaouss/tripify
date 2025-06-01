@@ -16,6 +16,8 @@ import { metricsMiddleware, register } from "./monitoring/metrics.js";
 import userRoutes from "./routes/users.js";
 import tripRoutes from "./routes/trips.js";
 import discoveryRoutes from "./routes/discovery.js";
+import recommendationRoutes from "./routes/recommendations.js";
+
 
 // Import gRPC server
 // import GrpcServer from "./grpc/index.js";
@@ -53,6 +55,7 @@ if (process.env.NODE_ENV === "development") {
 // Metrics middleware
 app.use(metricsMiddleware);
 
+
 // Apply rate limiting
 app.use("/api/", apiLimiter);
 
@@ -78,9 +81,10 @@ app.get("/metrics", async (req, res) => {
 });
 
 // API Routes
-app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/trips", tripRoutes);
-app.use("/api/v1/discovery", discoveryRoutes);
+app.use("/v1/users", userRoutes);
+app.use("/v1/trips", tripRoutes);
+app.use("/v1/discovery", discoveryRoutes);
+app.use("/v1/recommendations", recommendationRoutes);
 
 // Catch-all for undefined routes
 app.all("*", (req, res) => {

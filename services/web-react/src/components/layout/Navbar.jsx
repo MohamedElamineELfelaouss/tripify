@@ -131,6 +131,9 @@ const Navbar = () => {
                 >
                   Get Started
                 </Link>
+                <Link to="/ai-planner" className="nav-link">
+  🤖 AI Planner
+</Link>
               </div>
             )}
           </div>

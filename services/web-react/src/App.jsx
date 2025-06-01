@@ -28,6 +28,8 @@ const LoginPage = React.lazy(() => import('./pages/auth/LoginPage'));
 const RegisterPage = React.lazy(() => import('./pages/auth/RegisterPage'));
 const NotFoundPage = React.lazy(() => import('./pages/NotFoundPage'));
 
+const TripRecommendationsPage = React.lazy(() => import('./pages/TripRecommendations'));
+
 // Create a client
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -68,6 +70,7 @@ function App() {
         <Route path="trips" element={<TripsPage />} />
         <Route path="trips/:id" element={<TripDetailPage />} />
         <Route path="create-trip" element={<CreateTripPage />} />
+        <Route path="ai-planner" element={<TripRecommendationsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
