@@ -64,6 +64,8 @@ services:  # API Gateway (Traefik)
       - JWT_SECRET=tripify-secret-key-change-in-production
       - PORT=3000
       - GRPC_PORT=50051
+      - DATA_SERVICE_HOST=data-service
+      - DATA_SERVICE_PORT=50052
     depends_on:
       mongo:
         condition: service_healthy
