@@ -17,10 +17,11 @@ import userRoutes from "./routes/users.js";
 import tripRoutes from "./routes/trips.js";
 import discoveryRoutes from "./routes/discovery.js";
 import recommendationRoutes from "./routes/recommendations.js";
+import dataRoutes from "./routes/data.js";
 
 
 // Import gRPC server
-// import GrpcServer from "./grpc/index.js";
+import GrpcServer from "./grpc/index.js";
 import consul from "./config/consul.js";
 
 // Load environment variables
@@ -85,6 +86,7 @@ app.use("/v1/users", userRoutes);
 app.use("/v1/trips", tripRoutes);
 app.use("/v1/discovery", discoveryRoutes);
 app.use("/v1/recommendations", recommendationRoutes);
+app.use("/v1/data", dataRoutes);
 
 // Catch-all for undefined routes
 app.all("*", (req, res) => {
@@ -139,10 +141,10 @@ const server = app.listen(PORT, async () => {
 });
 
 // Start gRPC server
-// const grpcServer = new GrpcServer();
-// grpcServer.start(GRPC_PORT).catch((error) => {
-//   console.error("Failed to start gRPC server:", error);
-// });
+const grpcServer = new GrpcServer();
+grpcServer.start(GRPC_PORT).catch((error) => {
+  console.error("Failed to start gRPC server:", error);
+});
 
 // Graceful shutdown
 const gracefulShutdown = async (signal) => {
@@ -153,12 +155,12 @@ const gracefulShutdown = async (signal) => {
     console.log("✅ HTTP server closed");
   });
   // Close gRPC server
-  // try {
-  //   await grpcServer.stop();
-  //   console.log("✅ gRPC server closed");
-  // } catch (error) {
-  //   console.error("❌ Error closing gRPC server:", error);
-  // }
+  try {
+    await grpcServer.stop();
+    console.log("✅ gRPC server closed");
+  } catch (error) {
+    console.error("❌ Error closing gRPC server:", error);
+  }
 
   // Close database connection
   try {
